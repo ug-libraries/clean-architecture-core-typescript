@@ -1,0 +1,341 @@
+/*
+ * This file is part of the Urichy Core package.
+ *
+ * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
+ */
+
+import Request from "../../src/request/request";
+import RequestBuilder from "../../src/request/request-builder";
+import BadRequestContentError from "../../src/error/bad-request-content.error";
+import Status from "../../src/enum/status";
+import StatusCode from "../../src/response/status-code";
+import { z } from "zod";
+
+/**
+ * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
+ */
+describe('request class', () => {
+    it('Should be able to build a custom new request', () => {
+        const CustomRequest = class extends Request {};
+        expect((new CustomRequest).createFromPayload({})).toBeInstanceOf(RequestBuilder);
+    });
+
+    it('Should be able to build a custom new request and get request ID', () => {
+        const CustomRequest = class extends Request {};
+        const instanceRequest = (new CustomRequest()).createFromPayload({});
+        expect(instanceRequest.getRequestId()).not.toBeNull();
+    });
+
+    it('Should be able to build a custom new request with parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+        };
+        const instanceRequest = (new CustomRequest()).createFromPayload({
+            field_1: true,
+            field_2: true
+        });
+        expect(instanceRequest).toBeInstanceOf(RequestBuilder);
+    });
+
+    it('Should be able to build a custom new request with optional parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: false
+            };
+        };
+        const instanceRequest = (new CustomRequest()).createFromPayload({
+            field_1: true
+        });
+        expect(instanceRequest).toBeInstanceOf(RequestBuilder);
+    });
+
+    it('Should be able to build a custom new request and get as object', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+        };
+        const instanceRequest = (new CustomRequest()).createFromPayload({
+            field_1: ['yes', 'no'],
+            field_2: 3
+        });
+
+        expect(instanceRequest.getRequestData()).toStrictEqual({field_1: ['yes', 'no'], field_2: 3});
+    });
+
+    it('Should not be able to build a custom new request with missing parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('missing.required.fields');
+            expect(errorDetails.details).toEqual({
+                missing_fields: {'field_2': 'required'}
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with missing nested parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: {
+                    field_3: true
+                }
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true,
+                field_2: {}
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('missing.required.fields');
+            expect(errorDetails.details).toEqual({
+                missing_fields: {'field_2.field_3': 'required'}
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with missing array parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: {
+                    field_3: true
+                }
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true,
+                field_2: 1
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('missing.required.fields');
+            expect(errorDetails.details).toEqual({
+                missing_fields: {'field_2': 'required field type not matching array'}
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with unrequired parameters ', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true,
+                field_2: true,
+                field_3: 1
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('illegal.fields');
+            expect(errorDetails.details).toEqual({
+                unrequired_fields: ['field_3']
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with unrequired nested parameters ', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: {
+                    field_3: true
+                }
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true,
+                field_2: {
+                    field_3: 2,
+                    field_4: true
+                },
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('illegal.fields');
+            expect(errorDetails.details).toEqual({
+                unrequired_fields: ['field_2.field_4']
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with unrequired deep nested parameters', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: {
+                    field_3: {
+                        field_4: true
+                    }
+                }
+            };
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: true,
+                field_2: {
+                    field_3: {
+                        field_4: true,
+                        field_5: true,
+                    }
+                },
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('illegal.fields');
+            expect(error.getDetails()).toEqual({
+                unrequired_fields: ['field_2.field_3.field_5']
+            });
+            expect(errorDetails.details).toEqual({
+                unrequired_fields: ['field_2.field_3.field_5']
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with failed validation constraints', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+
+            protected applyConstraintsOnRequestFields(requestData: Record<string, any>): void
+            {
+                const mySchema = z.string({
+                    invalid_type_error: '[field_2] must be a string.',
+                });
+                const result = mySchema.safeParse(requestData.field_2);
+
+                if (!result.success) {
+                    throw new BadRequestContentError(result.error.format())
+                }
+            }
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: ['yes', 'no'],
+                field_2: 3
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(error.getMessage()).toEqual('invalid.request.fields');
+            expect(error.getDetailsMessage()).toEqual({
+                _errors: ['[field_2] must be a string.'],
+            });
+            expect(errorDetails.details).toEqual({
+                error: {
+                    _errors: ['[field_2] must be a string.'],
+                }
+            });
+        }
+    });
+
+    it('Should not be able to build a custom new request with failed validation constraints with message', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_2: true
+            };
+
+            protected applyConstraintsOnRequestFields(requestData: Record<string, any>): void
+            {
+                throw new BadRequestContentError({
+                    message: 'validation.constraints'
+                });
+            }
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: ['yes', 'no'],
+                field_2: 3
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('invalid.request.fields');
+            expect(error.getDetailsMessage()).toEqual('validation.constraints');
+        }
+    });
+
+    it('Should not be able to build a custom new request with failed validation constraints without message', () => {
+        const CustomRequest = class extends Request {
+            protected requestPossibleFields: Record<string, any> = {
+                field_1: true,
+                field_4: true
+            };
+
+            protected applyConstraintsOnRequestFields(requestData: Record<string, any>): void
+            {
+                throw new Error();
+            }
+        };
+
+        try {
+            const instanceRequest = (new CustomRequest()).createFromPayload({
+                field_1: ['yes', 'no'],
+                field_4: 3
+            });
+        } catch (error: any) {
+            const errorDetails = error.format();
+            expect(error instanceof BadRequestContentError).toBeTruthy();
+            expect(errorDetails.status).toEqual(Status.ERROR);
+            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
+            expect(errorDetails.message).toEqual('invalid.request.fields');
+            expect(error.getDetailsMessage()).toBeInstanceOf(Error);
+        }
+    });
+});
