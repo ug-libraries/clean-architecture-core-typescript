@@ -4,8 +4,8 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import RequestBuilderInterface from "../request/request-builder.interface";
 import PresenterInterface from "../presenter/presenter.interface";
+import RequestInterface from "../request/request.interface";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
@@ -21,14 +21,14 @@ interface UsecaseInterface {
    *
    * @param request
    */
-  setRequest(request: RequestBuilderInterface): this;
+  withRequest(request: RequestInterface): this;
 
   /**
    * Set presenter to get usecase response.
    *
    * @param presenter
    */
-  setPresenter(presenter: PresenterInterface): this;
+  withPresenter(presenter: PresenterInterface): this;
 }
 
 export default UsecaseInterface;

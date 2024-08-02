@@ -5,7 +5,6 @@
  */
 
 import Request from "../../src/request/request";
-import RequestBuilder from "../../src/request/request-builder";
 import BadRequestContentError from "../../src/error/bad-request-content.error";
 import Status from "../../src/enum/status";
 import StatusCode from "../../src/response/status-code";
@@ -15,11 +14,6 @@ import { z } from "zod";
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
 describe('request class', () => {
-    it('Should be able to build a custom new request', () => {
-        const CustomRequest = class extends Request {};
-        expect((new CustomRequest).createFromPayload({})).toBeInstanceOf(RequestBuilder);
-    });
-
     it('Should be able to build a custom new request and get request ID', () => {
         const CustomRequest = class extends Request {};
         const instanceRequest = (new CustomRequest()).createFromPayload({});
@@ -37,7 +31,7 @@ describe('request class', () => {
             field_1: true,
             field_2: true
         });
-        expect(instanceRequest).toBeInstanceOf(RequestBuilder);
+        expect(instanceRequest.getRequestId()).not.toBeNull();
     });
 
     it('Should be able to build a custom new request with optional parameters', () => {
@@ -50,22 +44,36 @@ describe('request class', () => {
         const instanceRequest = (new CustomRequest()).createFromPayload({
             field_1: true
         });
-        expect(instanceRequest).toBeInstanceOf(RequestBuilder);
+        expect(instanceRequest.getRequestId()).not.toBeNull();
     });
 
     it('Should be able to build a custom new request and get as object', () => {
         const CustomRequest = class extends Request {
             protected requestPossibleFields: Record<string, any> = {
                 field_1: true,
-                field_2: true
+                field_2: true,
+                field_4: {
+                    field_5: true
+                }
             };
         };
         const instanceRequest = (new CustomRequest()).createFromPayload({
             field_1: ['yes', 'no'],
-            field_2: 3
+            field_2: 3,
+            field_4: {
+                field_5: ['nice']
+            }
         });
 
-        expect(instanceRequest.getRequestData()).toStrictEqual({field_1: ['yes', 'no'], field_2: 3});
+        expect(instanceRequest.toArray()).toStrictEqual({field_1: ['yes', 'no'], field_2: 3, field_4: {field_5: ['nice']}});
+        expect(instanceRequest.get('field_1')).toEqual(['yes', 'no']);
+        expect(instanceRequest.get('field_2')).toEqual(3);
+        expect(instanceRequest.get('field_4.field_5')).toEqual(['nice']);
+        expect(instanceRequest.get('field_3')).toBeNull();
+        expect(instanceRequest.get('field_2.field_3')).toBeNull();
+
+        expect(instanceRequest.get('field_3', 'default_value')).toEqual('default_value');
+        expect(instanceRequest.get('field_2.field_3', 666)).toEqual(666);
     });
 
     it('Should not be able to build a custom new request with missing parameters', () => {

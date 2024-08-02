@@ -5,16 +5,18 @@
  */
 
 import RequestInterface from "./request.interface";
-import RequestBuilderInterface from "./request-builder.interface";
-import RequestBuilder from "./request-builder";
 import RequestFilter from "./request-filter";
 import BadRequestContentError from "../error/bad-request-content.error";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
 abstract class Request extends RequestFilter implements RequestInterface {
-  createFromPayload(payload: Record<string, any>): RequestBuilderInterface {
+  protected requestId: string = "";
+  protected requestParams: Record<string, any> = [];
+
+  createFromPayload(payload: Record<string, any>): RequestInterface {
     const requestValidationResult = this.requestPayloadFilter(payload);
     this.throwMissingFieldsExceptionIfNeeded(
       requestValidationResult["missing_fields"],
@@ -40,7 +42,41 @@ abstract class Request extends RequestFilter implements RequestInterface {
       });
     }
 
-    return new RequestBuilder(payload);
+    this.requestId = uuidv4();
+    this.requestParams = payload;
+
+    return this;
+  }
+
+  /**
+   * Get application request uniq id.
+   */
+  getRequestId(): string {
+    return this.requestId;
+  }
+
+  /**
+   * Get application request data by field path.
+   *
+   * @param fieldName
+   * @param defaultValue
+   */
+  get(fieldName: string, defaultValue: any = null): any {
+    let data: Record<string, any> = this.requestParams;
+    for (const key of fieldName.split(".")) {
+      if (!data || typeof data !== "object" || !(key in data)) {
+        return defaultValue;
+      }
+      data = data[key];
+    }
+    return data;
+  }
+
+  /**
+   * Get application request data as object.
+   */
+  toArray(): Record<string, any> {
+    return this.requestParams;
   }
 
   /**

@@ -166,26 +166,35 @@ const instanceRequest = (new EverythingOKRequest()).createFromPayload({
 });
 
 console.log(instanceRequest.getRequestId()); // 6d326314-f527-483c-80df-7c157acdb95b
-expect(instanceRequest).toBeInstanceOf(RequestBuilder);
 
 
 // or with nested request parameters
 const NestedParameterRequest = class extends Request {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true,
-    field_2: {
-        field_3: true
+    field_2: true,
+    field_4: {
+      field_5: true
     }
   };
 };
 const instanceNestedParamaterRequest = (new NestedParameterRequest()).createFromPayload({
-  field_1: true,
-  field_2: {
-    field_3: 3
+  field_1: ['yes', 'no'],
+  field_2: 3,
+  field_4: {
+    field_5: ['nice']
   }
 });
-expect(instanceNestedParamaterRequest).toBeInstanceOf(RequestBuilder);
 
+expect(instanceNestedParamaterRequest).toBeInstanceOf(RequestBuilder);
+expect(instanceRequest.get('field_1')).toEqual(['yes', 'no']);
+expect(instanceRequest.get('field_2')).toEqual(3);
+expect(instanceRequest.get('field_4.field_5')).toEqual(['nice']);
+expect(instanceRequest.get('field_3')).toBeNull();
+expect(instanceRequest.get('field_2.field_3')).toBeNull();
+
+expect(instanceRequest.get('field_3', 'default_value')).toEqual('default_value');
+expect(instanceRequest.get('field_2.field_3', 666)).toEqual(666);
 ```
 
 2. Create the custom presenter
@@ -234,7 +243,7 @@ const CustomUsecase = class extends Usecase implements UsecaseInterface {
 
 const instanceUsecase = new CustomUsecase();
 instanceUsecase
-        .setPresenter(instancePresenter)
+        .withPresenter(instancePresenter)
         .execute();
 
 const response = instancePresenter.getResponse();
@@ -288,7 +297,7 @@ try {
 const WithRquestAndPresenterUsecase = class extends Usecase implements UsecaseInterface {
   execute(): void {
     this.presenter?.present(
-            Response.create(true, StatusCode.OK, 'success.response', this.getRequestData())
+      Response.create(true, StatusCode.OK, 'success.response', this.getRequestData())
     );
   }
 };
@@ -307,9 +316,9 @@ const payload = {
 
 const instanceWithRquestAndPresenterUsecase = new WithRquestAndPresenter();
 instanceWithRquestAndPresenterUsecase
-        .setRequest((new CustomRequest()).createFromPayload(payload))
-        .setPresenter(instancePresenter)
-        .execute();
+  .withRequest((new CustomRequest()).createFromPayload(payload))
+  .withPresenter(instancePresenter)
+  .execute();
 
 const usecaseResponse = instancePresenter.getResponse();
 expect(usecaseResponse).toBeInstanceOf(Response);
@@ -432,8 +441,12 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 class AppUsecase extends Usecase implements AppUsecaseInterface {
   execute() {
-    this.presenter?.present(
-      Response.create(true, 200, 'success.message', this.getRequestData()),
+    this.presentResponse(
+      Response.create(true, 200, 'success.message', {
+          requestData: this.getRequestData(),
+          field_1: this.getField('field_1', 'value'),
+          field_5: this.getField('field_5', 'default_value'),
+      }),
     );
   }
 }
@@ -488,13 +501,13 @@ export class AppController {
   @Get()
   example(): Record<string, any> {
     this.usecase
-        .setRequest(
+        .withRequest(
           this.request.createFromPayload({
             field_1: ['yes', 'no'],
             field_2: 3,
           }),
         )
-        .setPresenter(this.presenter)
+        .withPresenter(this.presenter)
         .execute();
 
     return this.presenter.getFormattedResponse();
@@ -507,11 +520,18 @@ export class AppController {
   code: 200,
   message: 'success.message',
   data: {
-    field_1: [
-      'yes',
-      'no'
-    ],
-    field_2: 3
+      requestData: {
+          field_1: [
+              'yes',
+              'no'
+          ],
+          field_2: 3
+      }
+      field_1: [
+        'yes',
+        'no'
+      ],
+      field_5: 'default_value'
   }
 }
 ```

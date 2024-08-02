@@ -6,13 +6,14 @@
 
 import UsecaseInterface from "./usecase.interface";
 import PresenterInterface from "../presenter/presenter.interface";
-import RequestBuilderInterface from "../request/request-builder.interface";
+import RequestInterface from "../request/request.interface";
+import ResponseInterface from "../response/response.interface";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
 abstract class Usecase implements UsecaseInterface {
-  protected request: RequestBuilderInterface | undefined;
+  protected request: RequestInterface | undefined;
   protected presenter: PresenterInterface | undefined;
 
   /**
@@ -26,7 +27,7 @@ abstract class Usecase implements UsecaseInterface {
    * @param presenter The presenter to get usecase response
    * @return this
    */
-  setPresenter(presenter: PresenterInterface): this {
+  withPresenter(presenter: PresenterInterface): this {
     this.presenter = presenter;
     return this;
   }
@@ -37,7 +38,7 @@ abstract class Usecase implements UsecaseInterface {
    * @param request The applicative request
    * @return this
    */
-  setRequest(request: RequestBuilderInterface): this {
+  withRequest(request: RequestInterface): this {
     this.request = request;
     return this;
   }
@@ -47,12 +48,50 @@ abstract class Usecase implements UsecaseInterface {
    *
    * @return Record<string, any>
    */
-  getRequestData(): Record<string, any> {
+  protected getRequestData(): Record<string, any> {
     if (this.request === undefined) {
       return {};
     }
 
-    return this.request.getRequestData();
+    return this.request.toArray();
+  }
+
+  /**
+   * Get application request uniq id.
+   */
+  protected getRequestId(): string {
+    if (this.request === undefined) {
+      return "";
+    }
+
+    return this.request.getRequestId();
+  }
+
+  /**
+   * Get request data by field path.
+   *
+   * @param fieldName
+   * @param defaultValue
+   */
+  protected getField(fieldName: string, defaultValue: any = null): any {
+    if (this.request === undefined) {
+      return defaultValue;
+    }
+
+    return this.request.get(fieldName, defaultValue);
+  }
+
+  /**
+   * Transport given response to infrastructure layer.
+   *
+   * @param response The response to be presented
+   */
+  protected presentResponse(response: ResponseInterface): void {
+    if (this.presenter === undefined) {
+      return;
+    }
+
+    this.presenter.present(response);
   }
 }
 

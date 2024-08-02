@@ -20,7 +20,11 @@ abstract class Presenter implements PresenterInterface {
    * Get the use case formatted response
    */
   getFormattedResponse(): any {
-    return this.response?.output();
+    if (this.response === undefined) {
+      return null;
+    }
+
+    return this.response.output();
   }
 
   /**

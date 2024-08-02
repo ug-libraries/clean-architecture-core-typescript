@@ -4,13 +4,34 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import RequestBuilderInterface from "./request-builder.interface";
-
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
 interface RequestInterface {
-  createFromPayload(payload: Record<string, any>): RequestBuilderInterface;
+  /**
+   * Create a new application request from payload.
+   *
+   * @param payload
+   */
+  createFromPayload(payload: Record<string, any>): RequestInterface;
+
+  /**
+   * Get application request uniq id.
+   */
+  getRequestId(): string;
+
+  /**
+   * Get application request data by field path.
+   *
+   * @param fieldName
+   * @param defaultValue
+   */
+  get(fieldName: string, defaultValue?: any): any;
+
+  /**
+   * Get application request data as object.
+   */
+  toArray(): Record<string, any>;
 }
 
 export default RequestInterface;

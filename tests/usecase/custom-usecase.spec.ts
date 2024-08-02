@@ -31,7 +31,8 @@ describe('usecase class', () => {
                 this.presenter?.present(
                     Response.create(true, StatusCode.NO_CONTENT, 'success.response', {
                         field_1: 'yes',
-                        field_2: this.getRequestData()
+                        field_2: this.getField('field_2'),
+                        field_3: this.getField('field_3', 'default_value')
                     })
                 );
             }
@@ -39,7 +40,7 @@ describe('usecase class', () => {
 
         const instanceUsecase = new CustomUsecase();
         instanceUsecase
-            .setPresenter(instancePresenter)
+            .withPresenter(instancePresenter)
             .execute();
 
         const response = instancePresenter.getResponse();
@@ -49,17 +50,20 @@ describe('usecase class', () => {
         expect(response?.getStatusCode()).toEqual(StatusCode.NO_CONTENT);
         expect(response?.getData()).toEqual({
             field_1: 'yes',
-            field_2: {}
+            field_2: null,
+            field_3: 'default_value'
         });
         expect(response?.get('field_1')).toEqual('yes');
-        expect(response?.get('field_3')).toBeNull();
+        expect(response?.get('field_2')).toBeNull();
+        expect(response?.get('field_3')).toEqual('default_value');
         expect(instancePresenter.getFormattedResponse()).toEqual({
             status: Status.SUCCESS,
             code: StatusCode.NO_CONTENT,
             message: 'success.response',
             data: {
                 field_1: 'yes',
-                field_2: {}
+                field_2: null,
+                field_3: 'default_value'
             }
         });
     });
@@ -88,8 +92,8 @@ describe('usecase class', () => {
 
         const instanceUsecase = new CustomUsecase();
         instanceUsecase
-            .setRequest((new CustomRequest()).createFromPayload(payload))
-            .setPresenter(instancePresenter)
+            .withRequest((new CustomRequest()).createFromPayload(payload))
+            .withPresenter(instancePresenter)
             .execute();
 
         const response = instancePresenter.getResponse();
@@ -162,7 +166,7 @@ describe('usecase class', () => {
         try {
             const instanceUsecase = new CustomUsecase();
             instanceUsecase
-                .setRequest((new CustomRequest()).createFromPayload(payload))
+                .withRequest((new CustomRequest()).createFromPayload(payload))
                 .execute();
         } catch (error: any) {
             const errorDetails = error.format();
