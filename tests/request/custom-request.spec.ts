@@ -262,7 +262,10 @@ describe('request class', () => {
                 const result = mySchema.safeParse(requestData.field_2);
 
                 if (!result.success) {
-                    throw new BadRequestContentError(result.error.format())
+                    throw new BadRequestContentError({
+                        message: 'invalid.request.fields',
+                        errors: result.error.format()
+                    })
                 }
             }
         };
@@ -278,13 +281,8 @@ describe('request class', () => {
             expect(errorDetails.status).toEqual(Status.ERROR);
             expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
             expect(error.getMessage()).toEqual('invalid.request.fields');
-            expect(error.getDetailsMessage()).toEqual({
+            expect(errorDetails.errors).toEqual({
                 _errors: ['[field_2] must be a string.'],
-            });
-            expect(errorDetails.details).toEqual({
-                error: {
-                    _errors: ['[field_2] must be a string.'],
-                }
             });
         }
     });
@@ -314,8 +312,7 @@ describe('request class', () => {
             expect(error instanceof BadRequestContentError).toBeTruthy();
             expect(errorDetails.status).toEqual(Status.ERROR);
             expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
-            expect(errorDetails.message).toEqual('invalid.request.fields');
-            expect(error.getDetailsMessage()).toEqual('validation.constraints');
+            expect(errorDetails.message).toEqual('validation.constraints');
         }
     });
 
@@ -328,7 +325,7 @@ describe('request class', () => {
 
             protected applyConstraintsOnRequestFields(requestData: Record<string, any>): void
             {
-                throw new Error();
+                throw new Error('error_message');
             }
         };
 
@@ -338,12 +335,8 @@ describe('request class', () => {
                 field_4: 3
             });
         } catch (error: any) {
-            const errorDetails = error.format();
-            expect(error instanceof BadRequestContentError).toBeTruthy();
-            expect(errorDetails.status).toEqual(Status.ERROR);
-            expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
-            expect(errorDetails.message).toEqual('invalid.request.fields');
-            expect(error.getDetailsMessage()).toBeInstanceOf(Error);
+            expect(error instanceof Error).toBeTruthy();
+            expect(error.message).toEqual('error_message');
         }
     });
 });

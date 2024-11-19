@@ -28,18 +28,7 @@ abstract class Request extends RequestFilter implements RequestInterface {
     try {
       this.applyConstraintsOnRequestFields(payload);
     } catch (error: any) {
-      let errorDetail: any;
-
-      if (error.message) errorDetail = error.message;
-      else if (error.errors) errorDetail = error.errors;
-      else errorDetail = error;
-
-      throw new BadRequestContentError({
-        message: "invalid.request.fields",
-        details: {
-          error: errorDetail,
-        },
-      });
+      throw error;
     }
 
     this.requestId = uuidv4();
