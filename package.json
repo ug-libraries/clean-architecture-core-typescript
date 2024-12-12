@@ -1,6 +1,6 @@
 {
   "name": "@ug-ts/clean-architecture-core",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": false,
   "description": "Clean architecture core for typescript project.",
   "main": "./lib/cjs/index.js",

@@ -26,7 +26,7 @@ interface RequestInterface {
    * @param fieldName
    * @param defaultValue
    */
-  get(fieldName: string, defaultValue?: any): any;
+  get<T>(fieldName: string, defaultValue?: T): T;
 
   /**
    * Get application request data as object.

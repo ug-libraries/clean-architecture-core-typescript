@@ -73,12 +73,12 @@ abstract class Usecase implements UsecaseInterface {
    * @param fieldName
    * @param defaultValue
    */
-  protected getField(fieldName: string, defaultValue: any = null): any {
-    if (this.request === undefined) {
-      return defaultValue;
+  protected getField<T>(fieldName: string, defaultValue?: T): T {
+    if (!this.request || typeof this.request.get !== "function") {
+      return defaultValue as T;
     }
 
-    return this.request.get(fieldName, defaultValue);
+    return this.request.get<T>(fieldName, defaultValue);
   }
 
   /**

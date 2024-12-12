@@ -66,14 +66,14 @@ describe('request class', () => {
         });
 
         expect(instanceRequest.toArray()).toStrictEqual({field_1: ['yes', 'no'], field_2: 3, field_4: {field_5: ['nice']}});
-        expect(instanceRequest.get('field_1')).toEqual(['yes', 'no']);
-        expect(instanceRequest.get('field_2')).toEqual(3);
-        expect(instanceRequest.get('field_4.field_5')).toEqual(['nice']);
-        expect(instanceRequest.get('field_3')).toBeNull();
-        expect(instanceRequest.get('field_2.field_3')).toBeNull();
+        expect(instanceRequest.get<string[]>('field_1')).toEqual(['yes', 'no']);
+        expect(instanceRequest.get<number>('field_2')).toEqual(3);
+        expect(instanceRequest.get<string[]>('field_4.field_5')).toEqual(['nice']);
+        expect(instanceRequest.get<undefined>('field_3')).toBeUndefined();
+        expect(instanceRequest.get<undefined>('field_2.field_3')).toBeUndefined();
 
-        expect(instanceRequest.get('field_3', 'default_value')).toEqual('default_value');
-        expect(instanceRequest.get('field_2.field_3', 666)).toEqual(666);
+        expect(instanceRequest.get<string>('field_3', 'default_value')).toEqual('default_value');
+        expect(instanceRequest.get<number>('field_2.field_3', 666)).toEqual(666);
     });
 
     it('Should not be able to build a custom new request with missing parameters', () => {

@@ -45,15 +45,20 @@ class Response implements ResponseInterface {
    * ex: value = response.get('user.firstname') // return user firstname value or null if not found
    * ex: value = response.get('user.account.balance') // return user account balance value or null if not found
    */
-  get(fieldName: string): any {
-    let data: ResponseData = this.data;
+  get<T>(fieldName: string): T | undefined {
+    let data: unknown = this.data;
+
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+
     for (const key of fieldName.split(".")) {
-      if (!data || typeof data !== "object" || !(key in data)) {
-        return null;
+      if (!isObject(data) || !(key in data)) {
+        return undefined;
       }
       data = data[key];
     }
-    return data;
+
+    return data as T;
   }
 
   /**

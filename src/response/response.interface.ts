@@ -33,7 +33,7 @@ interface ResponseInterface {
   /**
    * Get specific field from response
    */
-  get(fieldName: string): any;
+  get<T>(fieldName: string): T | undefined;
 
   /**
    * Return response as array with more context

@@ -50,15 +50,20 @@ abstract class Request extends RequestFilter implements RequestInterface {
    * @param fieldName
    * @param defaultValue
    */
-  get(fieldName: string, defaultValue: any = null): any {
-    let data: Record<string, any> = this.requestParams;
+  get<T>(fieldName: string, defaultValue?: T): T {
+    let data: unknown = this.requestParams;
+  
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+  
     for (const key of fieldName.split(".")) {
-      if (!data || typeof data !== "object" || !(key in data)) {
-        return defaultValue;
+      if (!isObject(data) || !(key in data)) {
+        return defaultValue as T;
       }
       data = data[key];
     }
-    return data;
+  
+    return data as T;
   }
 
   /**

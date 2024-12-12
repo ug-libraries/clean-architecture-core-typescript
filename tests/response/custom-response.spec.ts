@@ -37,10 +37,10 @@ describe('response class', () => {
         expect(instanceResponse.isSuccess()).toBeTruthy();
         expect(instanceResponse.getStatusCode()).toEqual(StatusCode.OK);
         expect(instanceResponse.getMessage()).toEqual('success.response');
-        expect(instanceResponse.get('field_1')).toEqual('yes');
-        expect(instanceResponse.get('field_6')).toBeNull();
-        expect(instanceResponse.get('field_2.field_3')).toEqual(3);
-        expect(instanceResponse.get('field_2.field_4.field_5')).toEqual(['nice']);
+        expect(instanceResponse.get<string>('field_1')).toEqual('yes');
+        expect(instanceResponse.get<undefined>('field_6')).toBeUndefined();
+        expect(instanceResponse.get<number>('field_2.field_3')).toEqual(3);
+        expect(instanceResponse.get<string[]>('field_2.field_4.field_5')).toEqual(['nice']);
 
         expect(instanceResponse.output()).toEqual({
             status: Status.SUCCESS,

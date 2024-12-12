@@ -31,8 +31,8 @@ describe('usecase class', () => {
                 this.presenter?.present(
                     Response.create(true, StatusCode.NO_CONTENT, 'success.response', {
                         field_1: 'yes',
-                        field_2: this.getField('field_2'),
-                        field_3: this.getField('field_3', 'default_value')
+                        field_2: 3,
+                        field_3: ['success']
                     })
                 );
             }
@@ -50,20 +50,20 @@ describe('usecase class', () => {
         expect(response?.getStatusCode()).toEqual(StatusCode.NO_CONTENT);
         expect(response?.getData()).toEqual({
             field_1: 'yes',
-            field_2: null,
-            field_3: 'default_value'
+            field_2: 3,
+            field_3: ['success']
         });
         expect(response?.get('field_1')).toEqual('yes');
-        expect(response?.get('field_2')).toBeNull();
-        expect(response?.get('field_3')).toEqual('default_value');
+        expect(response?.get('field_2')).toEqual(3);
+        expect(response?.get('field_3')).toEqual(['success']);
         expect(instancePresenter.getFormattedResponse()).toEqual({
             status: Status.SUCCESS,
             code: StatusCode.NO_CONTENT,
             message: 'success.response',
             data: {
                 field_1: 'yes',
-                field_2: null,
-                field_3: 'default_value'
+                field_2: 3,
+                field_3: ['success'],
             }
         });
     });
@@ -73,7 +73,10 @@ describe('usecase class', () => {
             execute(): void
             {
                 this.presenter?.present(
-                    Response.create(true, StatusCode.OK, 'success.response', this.getRequestData())
+                    Response.create(true, StatusCode.OK, 'success.response', {
+                        field_1: this.getField<boolean>('field_1'),
+                        field_2: this.getField<number>('field_2')
+                    })
                 );
             }
         };
@@ -102,8 +105,8 @@ describe('usecase class', () => {
         expect(response?.getMessage()).toEqual('success.response');
         expect(response?.getStatusCode()).toEqual(StatusCode.OK);
         expect(response?.getData()).toEqual(payload);
-        expect(response?.get('field_1')).toBeTruthy();
-        expect(response?.get('field_2')).toEqual(3);
+        expect(response?.get<boolean>('field_1')).toBeTruthy();
+        expect(response?.get<number>('field_2')).toEqual(3);
         expect(instancePresenter.getFormattedResponse()).toEqual({
             status: Status.SUCCESS,
             code: StatusCode.OK,

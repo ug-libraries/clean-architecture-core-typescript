@@ -187,14 +187,14 @@ const instanceNestedParamaterRequest = (new NestedParameterRequest()).createFrom
 });
 
 expect(instanceNestedParamaterRequest).toBeInstanceOf(RequestBuilder);
-expect(instanceRequest.get('field_1')).toEqual(['yes', 'no']);
-expect(instanceRequest.get('field_2')).toEqual(3);
-expect(instanceRequest.get('field_4.field_5')).toEqual(['nice']);
-expect(instanceRequest.get('field_3')).toBeNull();
-expect(instanceRequest.get('field_2.field_3')).toBeNull();
+expect(instanceRequest.get<string[]>('field_1')).toEqual(['yes', 'no']);
+expect(instanceRequest.get<number>('field_2')).toEqual(3);
+expect(instanceRequest.get<string[]>('field_4.field_5')).toEqual(['nice']);
+expect(instanceRequest.get<undefined>('field_3')).toBeUndefined();
+expect(instanceRequest.get<undefined>('field_2.field_3')).toBeUndefined();
 
-expect(instanceRequest.get('field_3', 'default_value')).toEqual('default_value');
-expect(instanceRequest.get('field_2.field_3', 666)).toEqual(666);
+expect(instanceRequest.get<string>('field_3', 'default_value')).toEqual('default_value');
+expect(instanceRequest.get<number>('field_2.field_3', 666)).toEqual(666);
 ```
 
 2. Create the custom presenter
@@ -255,8 +255,8 @@ expect(response?.getData()).toEqual({
   field_1: 'yes',
   field_2: {}
 });
-expect(response?.get('field_1')).toEqual('yes');
-expect(response?.get('field_3')).toBeNull();
+expect(response?.get<string>('field_1')).toEqual('yes');
+expect(response?.get<undefined>('field_3')).toBeUndefined();
 expect(instancePresenter.getFormattedResponse()).toEqual({
   status: Status.SUCCESS,
   code: StatusCode.NO_CONTENT,
@@ -326,8 +326,8 @@ expect(usecaseResponse?.isSuccess()).toBe(true);
 expect(usecaseResponse?.getMessage()).toEqual('success.response');
 expect(usecaseResponse?.getStatusCode()).toEqual(StatusCode.OK);
 expect(usecaseResponse?.getData()).toEqual(payload);
-expect(usecaseResponse?.get('field_1')).toBeTruthy();
-expect(usecaseResponse?.get('field_2')).toEqual(3);
+expect(usecaseResponse?.get<boolean>('field_1')).toBeTruthy();
+expect(usecaseResponse?.get<number>('field_2')).toEqual(3);
 expect(instanceWithRquestAndPresenterUsecase.getFormattedResponse()).toEqual({
   status: Status.SUCCESS,
   code: StatusCode.OK,
@@ -444,8 +444,8 @@ class AppUsecase extends Usecase implements AppUsecaseInterface {
     this.presentResponse(
       Response.create(true, 200, 'success.message', {
           requestData: this.getRequestData(),
-          field_1: this.getField('field_1', 'value'),
-          field_5: this.getField('field_5', 'default_value'),
+          field_1: this.getField<string>('field_1', 'value'),
+          field_5: this.getField<string>('field_5', 'default_value'),
       }),
     );
   }
