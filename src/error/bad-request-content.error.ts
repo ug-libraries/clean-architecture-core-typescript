@@ -4,12 +4,11 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
+import BaseError from "./base.error";
+
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-enum Status {
-  SUCCESS = "success",
-  ERROR = "error",
-}
+class BadRequestContentError extends BaseError {}
 
-export default Status;
+export default BadRequestContentError;

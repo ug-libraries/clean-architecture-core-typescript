@@ -4,40 +4,14 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import { StatusCode } from "../response/response";
-import { Status } from "../enum/status";
+import StatusCode from "../response/status-code";
+import Status from "../enum/status";
+import ErrorInterface from "./error.interface";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-export interface IError {
-  /**
-   * Format exception as array.
-   */
-  format(): Record<string, any>;
-
-  /**
-   * Get custom exception errors.
-   */
-  getErrors(): Record<string, any>;
-
-  /**
-   * Get custom exception errors details.
-   */
-  getDetails(): Record<string, any>;
-
-  /**
-   * Get custom exception errors details message.
-   */
-  getDetailsMessage(): string;
-
-  /**
-   * Get error message.
-   */
-  getMessage(): string;
-}
-
-export class BaseError extends Error implements IError {
+class BaseError extends Error implements ErrorInterface {
   /**
    * Exception status code.
    */
@@ -92,4 +66,4 @@ export class BaseError extends Error implements IError {
   }
 }
 
-export class BadRequestContentError extends BaseError {}
+export default BaseError;

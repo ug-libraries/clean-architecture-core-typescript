@@ -1,6 +1,6 @@
 {
   "name": "@ug-ts/clean-architecture-core",
-  "version": "1.3.0",
+  "version": "1.2.1",
   "private": false,
   "description": "Clean architecture core for typescript project.",
   "main": "./lib/cjs/index.js",
@@ -26,8 +26,8 @@
     "test": "yarn test:ts-jest",
     "test:watch": "yarn test:ts-jest --watch",
     "test:ts-jest": "npx jest",
-    "prettier:check": "prettier --check . --no-error-on-unmatched-pattern",
-    "prettier:fix": "prettier --write . --ignore-unknown --no-error-on-unmatched-pattern"
+    "prettier:check": "prettier --check src/**/*.ts --no-error-on-unmatched-pattern",
+    "prettier:fix": "prettier --write src/**/*.ts --ignore-unknown --no-error-on-unmatched-pattern"
   },
   "dependencies": {
     "@types/uuid": "^9.0.8",

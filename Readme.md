@@ -36,18 +36,18 @@ pnpm add @ug-ts/clean-architecture-core
 ### Application Request
 
 Requests serve as input object, encapsulating data from your http controller. In the core library, use the `@ug-ts/clean-architecture-core/lib/esm/src/request/request` class
-as the foundation for creating custom application request object and implements `@ug-ts/clean-architecture-core/lib/esm/src/request/request` interface.
+as the foundation for creating custom application request object and implements `@ug-ts/clean-architecture-core/lib/esm/src/request/request.interface` interface.
 Define the expected fields using the `requestPossibleFields` property.
 
 ### Presenter
 
 Presenters handle the output logic of your usecase. You have to extends `@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter` and
-implements `@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter` interface.
+implements `@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter.interface` interface.
 
 ### Usecase
 
 Use cases encapsulate business logic and orchestrate the flow of data between requests, entities, and presenters.
-Extends the `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` class and implements `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` with the execute method.
+Extends the `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` class and implements `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase.interface` with the execute method.
 
 ### Response
 
@@ -55,26 +55,26 @@ Extends the `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` class a
 - Supports success/failure status, custom message, HTTP status codes, and response data.
 - I recommend you to extends `@ug-ts/clean-architecture-core/lib/esm/src/response/response` class to create your own response
 
+
 ## Example of how to use the core library
 
 > NB: I recommend you to @see all tests in `tests` folder to get more about examples.
 
 1. Creating a custom request and handling missing/unauthorized fields
 
-- Extends `@ug-ts/clean-architecture-core/lib/esm/src/request/request` and implements `@ug-ts/clean-architecture-core/lib/esm/src/request/request` to create
+- Extends `@ug-ts/clean-architecture-core/lib/esm/src/request/request` and implements `@ug-ts/clean-architecture-core/lib/esm/src/request/request.interface` to create
   custom application request objects.
 - Define the possible fields in the `requestPossibleFields` property.
 
 ```ts
-import {
-  IRequest,
-  Request,
-} from "@ug-ts/clean-architecture-core/lib/esm/src/request/request";
-import { BadRequestContentError } from "@ug-ts/clean-architecture-core/lib/esm/src/error/error";
+import RequestInterface from '@ug-ts/clean-architecture-core/lib/esm/src/request/request.interface';
+import RequestInterface from '@ug-ts/clean-architecture-core/lib/esm/src/request/request';
+import BadRequestContentError from '@ug-ts/clean-architecture-core/lib/esm/src/error/bad-request-content.error';
 
-interface ICustomRequest extends IRequest {}
+interface CustomRequestInterface extends RequestInterface {
+}
 
-class CustomRequest extends Request implements ICustomRequest {
+class CustomRequest extends Request implements CustomRequestInterface {
   protected requestPossibleFields: Record<string, any> = {
     firstname: true, // required
     lastname: true, // required
@@ -82,23 +82,23 @@ class CustomRequest extends Request implements ICustomRequest {
   };
 }
 
+
 // You can also apply constraints to the request fields. For that you have to modify the `applyConstraintsOnRequestFields` methods as below:
-class CustomRequest extends Request implements ICustomRequest {
+class CustomRequest extends Request implements CustomRequestInterface {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true, // required
-    field_2: false, // optional
+    field_2: false // optional
   };
 
-  protected applyConstraintsOnRequestFields(
-    requestData: Record<string, any>,
-  ): void {
+  protected applyConstraintsOnRequestFields(requestData: Record<string, any>): void
+  {
     const mySchema = z.string({
-      invalid_type_error: "[field_2] must be a string.",
+      invalid_type_error: '[field_2] must be a string.',
     });
     const result = mySchema.safeParse(requestData.field_2);
 
     if (!result.success) {
-      throw new BadRequestContentError(result.error.format());
+      throw new BadRequestContentError(result.error.format())
     }
   }
 }
@@ -111,19 +111,19 @@ const UnrequiredFieldRequest = class extends Request {
 };
 
 try {
-  const instanceRequest = new UnrequiredFieldRequest().createFromPayload({
+  const instanceRequest = (new UnrequiredFieldRequest()).createFromPayload({
     field_1: true,
-    field_2: ["nice"],
-    field_3: 1,
+    field_2: ['nice'],
+    field_3: 1
   });
 } catch (error: any) {
   const errorDetails = error.format();
   expect(error instanceof BadRequestContentError).toBeTruthy();
   expect(errorDetails.status).toEqual(Status.ERROR);
   expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
-  expect(errorDetails.message).toEqual("illegal.fields");
+  expect(errorDetails.message).toEqual('illegal.fields');
   expect(errorDetails.details).toEqual({
-    unrequired_fields: ["field_3"],
+    unrequired_fields: ['field_3']
   });
 }
 
@@ -132,24 +132,24 @@ const MissingFieldRequest = class extends Request {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true,
     field_2: {
-      field_3: true,
-    },
+      field_3: true
+    }
   };
 };
 
 try {
-  const instanceRequest = new MissingFieldRequest().createFromPayload({
+  const instanceRequest = (new MissingFieldRequest()).createFromPayload({
     field_1: true,
-    field_2: {},
+    field_2: {}
   });
 } catch (error: any) {
   const errorDetails = error.format();
   expect(error instanceof BadRequestContentError).toBeTruthy();
   expect(errorDetails.status).toEqual(Status.ERROR);
   expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
-  expect(errorDetails.message).toEqual("missing.required.fields");
+  expect(errorDetails.message).toEqual('missing.required.fields');
   expect(errorDetails.details).toEqual({
-    missing_fields: { "field_2.field_3": "required" },
+    missing_fields: {'field_2.field_3': 'required'}
   });
 }
 
@@ -157,15 +157,16 @@ try {
 const EverythingOKRequest = class extends Request {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true,
-    field_2: true,
+    field_2: true
   };
 };
-const instanceRequest = new EverythingOKRequest().createFromPayload({
+const instanceRequest = (new EverythingOKRequest()).createFromPayload({
   field_1: true,
-  field_2: true,
+  field_2: true
 });
 
 console.log(instanceRequest.getRequestId()); // 6d326314-f527-483c-80df-7c157acdb95b
+
 
 // or with nested request parameters
 const NestedParameterRequest = class extends Request {
@@ -173,43 +174,39 @@ const NestedParameterRequest = class extends Request {
     field_1: true,
     field_2: true,
     field_4: {
-      field_5: true,
-    },
+      field_5: true
+    }
   };
 };
-const instanceNestedParamaterRequest =
-  new NestedParameterRequest().createFromPayload({
-    field_1: ["yes", "no"],
-    field_2: 3,
-    field_4: {
-      field_5: ["nice"],
-    },
-  });
+const instanceNestedParamaterRequest = (new NestedParameterRequest()).createFromPayload({
+  field_1: ['yes', 'no'],
+  field_2: 3,
+  field_4: {
+    field_5: ['nice']
+  }
+});
 
 expect(instanceNestedParamaterRequest).toBeInstanceOf(RequestBuilder);
-expect(instanceRequest.get<string[]>("field_1")).toEqual(["yes", "no"]);
-expect(instanceRequest.get<number>("field_2")).toEqual(3);
-expect(instanceRequest.get<string[]>("field_4.field_5")).toEqual(["nice"]);
-expect(instanceRequest.get<undefined>("field_3")).toBeUndefined();
-expect(instanceRequest.get<undefined>("field_2.field_3")).toBeUndefined();
+expect(instanceRequest.get<string[]>('field_1')).toEqual(['yes', 'no']);
+expect(instanceRequest.get<number>('field_2')).toEqual(3);
+expect(instanceRequest.get<string[]>('field_4.field_5')).toEqual(['nice']);
+expect(instanceRequest.get<undefined>('field_3')).toBeUndefined();
+expect(instanceRequest.get<undefined>('field_2.field_3')).toBeUndefined();
 
-expect(instanceRequest.get<string>("field_3", "default_value")).toEqual(
-  "default_value",
-);
-expect(instanceRequest.get<number>("field_2.field_3", 666)).toEqual(666);
+expect(instanceRequest.get<string>('field_3', 'default_value')).toEqual('default_value');
+expect(instanceRequest.get<number>('field_2.field_3', 666)).toEqual(666);
 ```
 
-1. Create the custom presenter
+2. Create the custom presenter
 
 - Extends `@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter` to create `presenters`.
 
 ```ts
-import {
-  IPresenter,
-  Presenter,
-} from "@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter";
+import Presenter from '@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter';
+import PresenterInterface from '@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter.interface';
 
-interface ICustomPresenter extends IPresenter {}
+interface ICustomPresenter extends PresenterInterface {
+}
 
 class CustomPresenter extends Presenter implements ICustomPresenter {
   // you can override parent methods here to customize them
@@ -218,76 +215,71 @@ class CustomPresenter extends Presenter implements ICustomPresenter {
 
 3. Creating a custom usecase and execute it
 
-- Extends `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` and implements `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` to create your use cases.
+- Extends `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase` and implements `@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase.interface` to create your use cases.
 - Implement the `execute` method for the use case logic.
 
 ```ts
-import {
-  Presenter,
-  IPresenter,
-} from "@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter";
-import {
-  Usecase,
-  IUsecase,
-} from "@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase";
-import { IRequest } from "@ug-ts/clean-architecture-core/lib/esm/src/request/request";
+import Presenter from '@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter';
+import PresenterInterface from '@ug-ts/clean-architecture-core/lib/esm/src/presenter/presenter.interface';
+import Usecase from '@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase';
+import UsecaseInterface from '@ug-ts/clean-architecture-core/lib/esm/src/usecase/usecase.interface';
+import RequestInterface from "./request.interface";
 
-const CustomPresenter = class extends Presenter implements IPresenter {};
+const CustomPresenter = class extends Presenter implements PresenterInterface {
+};
 instancePresenter = new CustomPresenter();
 
 // with presenter and without request
-const CustomUsecase = class extends Usecase implements IUsecase {
+const CustomUsecase = class extends Usecase implements UsecaseInterface {
   execute(): void {
     this.presenter?.present(
-      Response.create(true, StatusCode.NO_CONTENT, "success.response", {
-        field_1: "yes",
-        field_2: this.getRequestData(),
-      }),
+            Response.create(true, StatusCode.NO_CONTENT, 'success.response', {
+              field_1: 'yes',
+              field_2: this.getRequestData()
+            })
     );
   }
 };
 
 const instanceUsecase = new CustomUsecase();
-instanceUsecase.withPresenter(instancePresenter).execute();
+instanceUsecase
+        .withPresenter(instancePresenter)
+        .execute();
 
 const response = instancePresenter.getResponse();
 expect(response).toBeInstanceOf(Response);
 expect(response?.isSuccess()).toBe(true);
-expect(response?.getMessage()).toEqual("success.response");
+expect(response?.getMessage()).toEqual('success.response');
 expect(response?.getStatusCode()).toEqual(StatusCode.NO_CONTENT);
 expect(response?.getData()).toEqual({
-  field_1: "yes",
-  field_2: {},
+  field_1: 'yes',
+  field_2: {}
 });
-expect(response?.get<string>("field_1")).toEqual("yes");
-expect(response?.get<undefined>("field_3")).toBeUndefined();
+expect(response?.get<string>('field_1')).toEqual('yes');
+expect(response?.get<undefined>('field_3')).toBeUndefined();
 expect(instancePresenter.getFormattedResponse()).toEqual({
   status: Status.SUCCESS,
   code: StatusCode.NO_CONTENT,
-  message: "success.response",
+  message: 'success.response',
   data: {
-    field_1: "yes",
-    field_2: {},
-  },
+    field_1: 'yes',
+    field_2: {}
+  }
 });
 
 // without request and presenter
-const WithRquestWithoutPresenterUsecase = class
-  extends Usecase
-  implements IUsecase
-{
+const WithRquestWithoutPresenterUsecase = class extends Usecase implements UsecaseInterface {
   execute(): void {
     throw new BadRequestContentError({
-      message: "BadRequestContentError",
+      message: 'BadRequestContentError',
       details: {
-        field_1: "yes",
-      },
+        field_1: 'yes',
+      }
     });
   }
 };
 
-const instanceWithRquestWithoutPresenterUsecase =
-  new WithRquestWithoutPresenterUsecase();
+const instanceWithRquestWithoutPresenterUsecase = new WithRquestWithoutPresenterUsecase();
 
 try {
   instanceWithRquestWithoutPresenterUsecase.execute();
@@ -295,64 +287,56 @@ try {
   const errorDetails = error.format();
   expect(errorDetails.status).toEqual(Status.ERROR);
   expect(errorDetails.error_code).toEqual(StatusCode.BAD_REQUEST);
-  expect(errorDetails.message).toEqual("BadRequestContentError");
+  expect(errorDetails.message).toEqual('BadRequestContentError');
   expect(errorDetails.details).toEqual({
-    field_1: "yes",
-  });
+    field_1: 'yes'
+  })
 }
 
 // with request and presenter
-const WithRquestAndPresenterUsecase = class
-  extends Usecase
-  implements IUsecase
-{
+const WithRquestAndPresenterUsecase = class extends Usecase implements UsecaseInterface {
   execute(): void {
     this.presenter?.present(
-      Response.create(
-        true,
-        StatusCode.OK,
-        "success.response",
-        this.getRequestData(),
-      ),
+      Response.create(true, StatusCode.OK, 'success.response', this.getRequestData())
     );
   }
 };
 
-const CustomRequest = class extends Request implements IRequest {
+const CustomRequest = class extends Request implements RequestInterface {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true,
-    field_2: true,
+    field_2: true
   };
 };
 
 const payload = {
   field_1: true,
-  field_2: 3,
+  field_2: 3
 };
 
 const instanceWithRquestAndPresenterUsecase = new WithRquestAndPresenter();
 instanceWithRquestAndPresenterUsecase
-  .withRequest(new CustomRequest().createFromPayload(payload))
+  .withRequest((new CustomRequest()).createFromPayload(payload))
   .withPresenter(instancePresenter)
   .execute();
 
 const usecaseResponse = instancePresenter.getResponse();
 expect(usecaseResponse).toBeInstanceOf(Response);
 expect(usecaseResponse?.isSuccess()).toBe(true);
-expect(usecaseResponse?.getMessage()).toEqual("success.response");
+expect(usecaseResponse?.getMessage()).toEqual('success.response');
 expect(usecaseResponse?.getStatusCode()).toEqual(StatusCode.OK);
 expect(usecaseResponse?.getData()).toEqual(payload);
-expect(usecaseResponse?.get<boolean>("field_1")).toBeTruthy();
-expect(usecaseResponse?.get<number>("field_2")).toEqual(3);
+expect(usecaseResponse?.get<boolean>('field_1')).toBeTruthy();
+expect(usecaseResponse?.get<number>('field_2')).toEqual(3);
 expect(instanceWithRquestAndPresenterUsecase.getFormattedResponse()).toEqual({
   status: Status.SUCCESS,
   code: StatusCode.OK,
-  message: "success.response",
-  data: payload,
+  message: 'success.response',
+  data: payload
 });
 ```
 
-1. When error throwing
+4. When error throwing
 
 When errors throwing, you can use some methods.
 
@@ -379,7 +363,7 @@ console.log(error.getDetails()); // print error details
 }
 
 
-// or
+// or 
 
 {
   error: 'field [username] is missing.'
@@ -407,34 +391,33 @@ console.log(error.format());
 // (you can import form cjs or esm)
 
 // create presenter interface
-import {IPresenter} from '@ug-ts/clean-architecture-core/lib/cjs/src/presenter/presenter';
+import PresenterInterface from '@ug-ts/clean-architecture-core/lib/cjs/src/presenter/presenter.interface';
 
-interface IAppPresenter extends IPresenter {}
-export default IAppPresenter;
+interface AppPresenterInterface extends PresenterInterface {}
+export default AppPresenterInterface;
 
 // create presenter concret class that implement that interface
-import {IPresenter, Presenter} from '@ug-ts/clean-architecture-core/lib/cjs/src/presenter/presenter';
-import IAppPresenter from './app-presenter.interface';
+import Presenter from '@ug-ts/clean-architecture-core/lib/cjs/src/presenter/presenter';
+import AppPresenterInterface from './app-presenter.interface';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-class AppPresenter extends Presenter implements IAppPresenter {}
+class AppPresenter extends Presenter implements AppPresenterInterface {}
 export default AppPresenter;
 
 // create applicative request interface
-import {IRequest, Request} from '@ug-ts/clean-architecture-core/lib/cjs/src/request/request';
-import AppRequestInterface from './app-request.interface';
+import RequestInterface from '@ug-ts/clean-architecture-core/lib/cjs/src/request/request.interface';
 
-interface IAppRequest extends IRequest {}
-export default IAppRequest;
+interface AppRequestInterface extends RequestInterface {}
+export default AppRequestInterface;
 
 // create applicative request concret class that implement that interface
 import Request from '@ug-ts/clean-architecture-core/lib/cjs/src/request/request';
-import IAppRequest from './app-request.interface';
+import AppRequestInterface from './app-request.interface';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-class AppRequest extends Request implements IAppRequest {
+class AppRequest extends Request implements AppRequestInterface {
   protected requestPossibleFields: Record<string, any> = {
     field_1: true,
     field_2: true,
@@ -444,25 +427,25 @@ class AppRequest extends Request implements IAppRequest {
 export default AppRequest;
 
 // create usecase interface
-import {IUsecase, Usecase} from '@ug-ts/clean-architecture-core/lib/cjs/src/usecase/usecase';
+import UsecaseInterface from '@ug-ts/clean-architecture-core/lib/cjs/src/usecase/usecase.interface';
 
-interface IAppUsecase extends IUsecase {}
-export default IAppUsecase;
+interface AppUsecaseInterface extends UsecaseInterface {}
+export default AppUsecaseInterface;
 
 // create usecase concret class that implement that interface
-import {Response} from '@ug-ts/clean-architecture-core/lib/cjs/src/response/response';
-import {Usecase} from '@ug-ts/clean-architecture-core/lib/cjs/src/usecase/usecase';
-import IAppUsecase from './app-usecase.interface';
+import Usecase from '@ug-ts/clean-architecture-core/lib/cjs/src/usecase/usecase';
+import Response from '@ug-ts/clean-architecture-core/lib/cjs/src/response/response';
+import AppUsecaseInterface from './app-usecase.interface';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-class AppUsecase extends Usecase implements IAppUsecase {
+class AppUsecase extends Usecase implements AppUsecaseInterface {
   execute() {
     this.presentResponse(
       Response.create(true, 200, 'success.message', {
-        requestData: this.getRequestData(),
-        field_1: this.getField<string>('field_1', 'value'),
-        field_5: this.getField<string>('field_5', 'default_value'),
+          requestData: this.getRequestData(),
+          field_1: this.getField<string>('field_1', 'value'),
+          field_5: this.getField<string>('field_5', 'default_value'),
       }),
     );
   }
@@ -484,15 +467,15 @@ import AppPresenter from './custom/presenter/app-presenter';
   providers: [
     AppService,
     {
-      provide: 'IAppUsecase', // This token can also be a Symbol if preferred.
+      provide: 'AppUsecaseInterface', // This token can also be a Symbol if preferred.
       useClass: AppUsecase,
     },
     {
-      provide: 'IAppRequest', // This token can also be a Symbol if preferred.
+      provide: 'AppRequestInterface', // This token can also be a Symbol if preferred.
       useClass: AppRequest,
     },
     {
-      provide: 'IAppPresenter', // This token can also be a Symbol if preferred.
+      provide: 'AppPresenterInterface', // This token can also be a Symbol if preferred.
       useClass: AppPresenter,
     },
   ],
@@ -503,29 +486,29 @@ export class AppModule {}
 
 // use it in controller
 import { Controller, Get, Inject } from '@nestjs/common';
-import IAppRequest from './custom/request/app-request.interface';
-import IAppUsecase from './custom/usecase/app-usecase.interface';
-import IAppPresenter from './custom/presenter/app-presenter.interface';
+import AppRequestInterface from './custom/request/app-request.interface';
+import AppUsecaseInterface from './custom/usecase/app-usecase.interface';
+import AppPresenterInterface from './custom/presenter/app-presenter.interface';
 
 @Controller()
 export class AppController {
   constructor(
-      @Inject('IAppRequest') private readonly request: IAppRequest,
-      @Inject('IAppUsecase') private readonly usecase: IAppUsecase,
-      @Inject('IAppPresenter') private readonly presenter: IAppPresenter,
+      @Inject('AppRequestInterface') private readonly request: AppRequestInterface,
+      @Inject('AppUsecaseInterface') private readonly usecase: AppUsecaseInterface,
+      @Inject('AppPresenterInterface') private readonly presenter: AppPresenterInterface,
   ) {}
 
   @Get()
   example(): Record<string, any> {
     this.usecase
-      .withRequest(
-        this.request.createFromPayload({
-          field_1: ['yes', 'no'],
-          field_2: 3,
-        }),
-      )
-      .withPresenter(this.presenter)
-      .execute();
+        .withRequest(
+          this.request.createFromPayload({
+            field_1: ['yes', 'no'],
+            field_2: 3,
+          }),
+        )
+        .withPresenter(this.presenter)
+        .execute();
 
     return this.presenter.getFormattedResponse();
   }
@@ -537,21 +520,22 @@ export class AppController {
   code: 200,
   message: 'success.message',
   data: {
-    requestData: {
+      requestData: {
+          field_1: [
+              'yes',
+              'no'
+          ],
+          field_2: 3
+      }
       field_1: [
-          'yes',
-          'no'
+        'yes',
+        'no'
       ],
-      field_2: 3
-    }
-    field_1: [
-      'yes',
-      'no'
-    ],
-    field_5: 'default_value'
+      field_5: 'default_value'
   }
 }
 ```
+
 
 ## Units Tests
 

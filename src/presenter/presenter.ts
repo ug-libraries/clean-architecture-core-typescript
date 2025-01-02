@@ -4,36 +4,17 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import { IResponse } from "../response/response";
+import PresenterInterface from "./presenter.interface";
+import ResponseInterface from "../response/response.interface";
 
-export interface IPresenter {
-  /**
-   * Use by use case to send application response.
-   *
-   * @param response The response to be presented.
-   */
-  present(response: IResponse): void;
-
-  /**
-   * Get the use case response that was sent.
-   *
-   * @return ResponseInterface|undefined The response that was sent.
-   */
-  getResponse(): IResponse | undefined;
-
-  /**
-   * Return the formatted usecase response that was sent.
-   *
-   * @return any
-   */
-  getFormattedResponse(): any;
-}
-
-export abstract class Presenter implements IPresenter {
+/**
+ * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
+ */
+abstract class Presenter implements PresenterInterface {
   /**
    * The application response
    */
-  protected response: IResponse | undefined;
+  protected response: ResponseInterface | undefined;
 
   /**
    * Get the use case formatted response
@@ -49,14 +30,16 @@ export abstract class Presenter implements IPresenter {
   /**
    * Get the use case response
    */
-  getResponse(): IResponse | undefined {
+  getResponse(): ResponseInterface | undefined {
     return this.response;
   }
 
   /**
    * Present use case response to the client
    */
-  present(response: IResponse): void {
+  present(response: ResponseInterface): void {
     this.response = response;
   }
 }
+
+export default Presenter;

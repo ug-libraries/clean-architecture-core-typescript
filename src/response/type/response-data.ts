@@ -7,9 +7,4 @@
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-enum Status {
-  SUCCESS = "success",
-  ERROR = "error",
-}
-
-export default Status;
+export type ResponseData = { data: any } | { details: any };
