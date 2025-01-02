@@ -4,17 +4,37 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import UsecaseInterface from "./usecase.interface";
-import PresenterInterface from "../presenter/presenter.interface";
-import RequestInterface from "../request/request.interface";
-import ResponseInterface from "../response/response.interface";
+import { IPresenter } from "presenter/presenter";
+import { IRequest } from "request/request";
+import { IResponse } from "response/response";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-abstract class Usecase implements UsecaseInterface {
-  protected request: RequestInterface | undefined;
-  protected presenter: PresenterInterface | undefined;
+export interface IUsecase {
+  /**
+   * Execute the application request.
+   */
+  execute(): void;
+
+  /**
+   * Set applicative request to be processed by usecase.
+   *
+   * @param request
+   */
+  withRequest(request: IRequest): this;
+
+  /**
+   * Set presenter to get usecase response.
+   *
+   * @param presenter
+   */
+  withPresenter(presenter: IPresenter): this;
+}
+
+export abstract class Usecase implements IUsecase {
+  protected request: IRequest | undefined;
+  protected presenter: IPresenter | undefined;
 
   /**
    * Execute the application request.
@@ -27,7 +47,7 @@ abstract class Usecase implements UsecaseInterface {
    * @param presenter The presenter to get usecase response
    * @return this
    */
-  withPresenter(presenter: PresenterInterface): this {
+  withPresenter(presenter: IPresenter): this {
     this.presenter = presenter;
     return this;
   }
@@ -38,7 +58,7 @@ abstract class Usecase implements UsecaseInterface {
    * @param request The applicative request
    * @return this
    */
-  withRequest(request: RequestInterface): this {
+  withRequest(request: IRequest): this {
     this.request = request;
     return this;
   }
@@ -86,7 +106,7 @@ abstract class Usecase implements UsecaseInterface {
    *
    * @param response The response to be presented
    */
-  protected presentResponse(response: ResponseInterface): void {
+  protected presentResponse(response: IResponse): void {
     if (this.presenter === undefined) {
       return;
     }
@@ -94,5 +114,3 @@ abstract class Usecase implements UsecaseInterface {
     this.presenter.present(response);
   }
 }
-
-export default Usecase;

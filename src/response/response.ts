@@ -4,16 +4,79 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import ResponseInterface from "./response.interface";
-import ResponseData from "./enum/response-data";
-import type { ResponseData as ResponseDataType } from "./type/response-data";
-import Status from "../enum/status";
+import { Status } from "../enum/status";
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-class Response implements ResponseInterface {
-  constructor(
+export interface ResponseData {
+  [key: string]: any;
+}
+
+export type ResponseDataType = { data: any } | { details: any };
+
+export enum StatusCode {
+  OK = 200,
+  CREATED = 201,
+  ACCEPTED = 202,
+  NO_CONTENT = 204,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  RESOURCE_ALREADY_EXISTS = 409,
+  EXPECTATION_FAILED = 417,
+  LOCKED = 423,
+  TOO_MANY_REQUESTS = 429,
+  INTERNAL_SERVER_ERROR = 500,
+  SERVICE_UNAVAILABLE = 503,
+  GATEWAY_TIMEOUT = 504,
+}
+
+export interface IResponse {
+  /**
+   * Check if response is success
+   */
+  isSuccess(): boolean;
+
+  /**
+   * Get response status code
+   */
+  getStatusCode(): number;
+
+  /**
+   * Get custom response message
+   */
+  getMessage(): string | null;
+
+  /**
+   * Get the response data
+   */
+  getData(): ResponseData;
+
+  /**
+   * Get specific field from response
+   */
+  get<T>(fieldName: string): T | undefined;
+
+  /**
+   * Return response as array with more context
+   *
+   * @see ResponseTest
+   * ex: [
+   *     'status'   => 'success',
+   *      'code'    => 200,
+   *      'message' => null,
+   *      'data'    => [
+   *          'key' => 'value',
+   *      ]
+   * ]
+   */
+  output(): any;
+}
+
+export class Response implements IResponse {
+  private constructor(
     private readonly success: boolean,
     private readonly statusCode: number,
     private readonly message: string,
@@ -110,5 +173,3 @@ class Response implements ResponseInterface {
       : { details: this.getData() };
   }
 }
-
-export default Response;

@@ -7,9 +7,7 @@
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-enum Status {
+export enum Status {
   SUCCESS = "success",
   ERROR = "error",
 }
-
-export default Status;

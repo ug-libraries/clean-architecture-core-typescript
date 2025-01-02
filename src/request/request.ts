@@ -4,19 +4,45 @@
  * (c) Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com>
  */
 
-import RequestInterface from "./request.interface";
 import RequestFilter from "./request-filter";
-import BadRequestContentError from "../error/bad-request-content.error";
+import { BadRequestContentError } from "../error/error";
 import { v4 as uuidv4 } from "uuid";
+
+export interface IRequest {
+  /**
+   * Create a new application request from payload.
+   *
+   * @param payload
+   */
+  createFromPayload(payload: Record<string, any>): IRequest;
+
+  /**
+   * Get application request uniq id.
+   */
+  getRequestId(): string;
+
+  /**
+   * Get application request data by field path.
+   *
+   * @param fieldName
+   * @param defaultValue
+   */
+  get<T>(fieldName: string, defaultValue?: T): T;
+
+  /**
+   * Get application request data as object.
+   */
+  toArray(): Record<string, any>;
+}
 
 /**
  * @author Ulrich Geraud AHOGLA. <iamcleancoder@gmail.com
  */
-abstract class Request extends RequestFilter implements RequestInterface {
+export abstract class Request extends RequestFilter implements IRequest {
   protected requestId: string = "";
   protected requestParams: Record<string, any> = [];
 
-  createFromPayload(payload: Record<string, any>): RequestInterface {
+  createFromPayload(payload: Record<string, any>): IRequest {
     const requestValidationResult = this.requestPayloadFilter(payload);
     this.throwMissingFieldsExceptionIfNeeded(
       requestValidationResult["missing_fields"],
@@ -25,11 +51,7 @@ abstract class Request extends RequestFilter implements RequestInterface {
       requestValidationResult["unauthorized_fields"],
     );
 
-    try {
-      this.applyConstraintsOnRequestFields(payload);
-    } catch (error: any) {
-      throw error;
-    }
+    this.applyConstraintsOnRequestFields(payload);
 
     this.requestId = uuidv4();
     this.requestParams = payload;
@@ -52,17 +74,17 @@ abstract class Request extends RequestFilter implements RequestInterface {
    */
   get<T>(fieldName: string, defaultValue?: T): T {
     let data: unknown = this.requestParams;
-  
+
     const isObject = (value: unknown): value is Record<string, unknown> =>
       typeof value === "object" && value !== null;
-  
+
     for (const key of fieldName.split(".")) {
       if (!isObject(data) || !(key in data)) {
         return defaultValue as T;
       }
       data = data[key];
     }
-  
+
     return data as T;
   }
 
@@ -112,5 +134,3 @@ abstract class Request extends RequestFilter implements RequestInterface {
     requestData: Record<string, any>,
   ): void {}
 }
-
-export default Request;
