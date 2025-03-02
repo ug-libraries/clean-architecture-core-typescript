@@ -1,10 +1,10 @@
 {
   "name": "@ug-ts/clean-architecture-core",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": false,
   "description": "Clean architecture core for typescript project.",
-  "main": "./lib/cjs/index.js",
-  "module": "./lib/esm/index.js",
+  "main": "./lib/cjs/src/index.js",
+  "module": "./lib/esm/src/index.js",
   "author": "Ulrich Geraud A.",
   "homepage": "https://github.com/ug-libraries/clean-architecture-core-typescript",
   "license": "MIT",
@@ -22,9 +22,9 @@
   },
   "scripts": {
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
-    "prepublishOnly": "npm run tsc",
-    "test": "yarn test:ts-jest",
-    "test:watch": "yarn test:ts-jest --watch",
+    "prepublishOnly": "pnpm run tsc",
+    "test": "pnpm test:ts-jest",
+    "test:watch": "pnpm test:ts-jest --watch",
     "test:ts-jest": "npx jest",
     "prettier:check": "prettier --check . --no-error-on-unmatched-pattern",
     "prettier:fix": "prettier --write . --ignore-unknown --no-error-on-unmatched-pattern"
@@ -42,5 +42,6 @@
     "ts-jest": "^29.1.4",
     "ts-node": "^10.9.2",
     "zod": "^3.23.8"
-  }
+  },
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }
